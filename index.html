@@ -1,436 +1,201 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8" />
-<title>QSO ADIF & Propagation avec Timeline</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-  body { margin: 0; font-family: Arial, sans-serif; background: #1e1e1e; color: #e0e0e0; display: flex; height: 100vh; }
-  #sidebar { width: 350px; background: #111; padding: 20px; box-sizing: border-box; overflow-y: auto; }
-  #map { flex: 1; }
-  input, button, select { width: 100%; padding: 8px; margin: 5px 0; background: #222; border: 1px solid #444; color: #fff; box-sizing: border-box; }
-  button, select { cursor: pointer; border-radius: 4px; }
-  button { background: #007bff; }
-  button:hover { background: #0a84ff; }
-  select { background: #222; }
-  .progress-container { display: none; width: 100%; background: #222; border-radius: 8px; margin: 10px 0; }
-  .progress-bar { height: 20px; background: #4caf50; width: 0%; border-radius: 8px; text-align: center; color: #000; line-height: 20px; font-weight: bold; }
-  #info { margin-top: 5px; color: #bbb; font-size: 13px; }
-  #timeline-container { margin-top: 10px; }
-  .legend {
-    font-size: 13px; margin-top: 10px; padding: 6px; background: #262626; border-radius: 6px;
-    user-select: none;
-  }
-  .legend span {
-    display: inline-block; width: 12px; height: 12px; margin-right: 6px;
-    border-radius: 8px; vertical-align: middle;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kratosphère — Comprendre, débattre, agir</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="sidebar">
-  <h2>CONTEST ANALYSE BY ON1DA</h2>
+  <header class="site-header">
+    <a class="brand" href="#accueil"><span class="brand-icon">K</span><span>Kratosphère</span></a>
+    <button class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="#democratie">Démocratie</a>
+      <a href="#monnaie">Création monétaire</a>
+      <a href="#outils">Outils</a>
+      <a href="#liens">Liens</a>
+      <a class="nav-contact" href="#contact">Contact</a>
+    </nav>
+  </header>
 
-  <input type="text" id="qraLocator" maxlength="6" placeholder="Entrer le QRA-Locator (ex: JO20DJ)" autocomplete="off" />
-  <input type="file" id="adifFile" accept=".adi,.adif" disabled />
-  <button id="analyzeBtn" disabled>Analyser et afficher</button>
+  <main>
+    <section class="hero" id="accueil">
+      <div class="hero-content">
+        <p class="eyebrow"><span class="live-dot"></span> Un espace citoyen indépendant</p>
+        <h1>La démocratie,<br><span>ça se comprend.</span></h1>
+        <p class="hero-text">Des idées, des repères et des outils pour mieux comprendre les règles du jeu collectif — et prendre part à la conversation.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#democratie">Explorer les sujets <span>↗</span></a>
+          <a class="button button-secondary" href="#apropos">Découvrir Kratosphère</a>
+        </div>
+        <p class="hero-note">Indépendant · Pédagogique · Ouvert à toutes et tous</p>
+      </div>
 
-  <select id="bandSelect">
-    <option value="">Toutes bandes</option>
-    <option value="160M">160m</option>
-    <option value="80M">80m</option>
-    <option value="60M">60m</option>
-    <option value="40M">40m</option>
-    <option value="30M">30m</option>
-    <option value="20M">20m</option>
-    <option value="17M">17m</option>
-    <option value="15M">15m</option>
-    <option value="12M">12m</option>
-    <option value="10M">10m</option>
-    <option value="6M">6m</option>
-    <option value="4M">4m</option>
-    <option value="2M">2m</option>
-    <option value="70CM">70cm</option>
-    <option value="VHF">VHF</option>
-    <option value="UHF">UHF</option>
-  </select>
+      <div class="hero-art" aria-hidden="true">
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <div class="orbit orbit-three"></div>
+        <div class="center-symbol"><span>κ</span><small>LE POUVOIR<br>EN PARTAGE</small></div>
+        <div class="orbit-label label-one">Comprendre</div>
+        <div class="orbit-label label-two">Débattre</div>
+        <div class="orbit-label label-three">Participer</div>
+      </div>
 
-  <div class="progress-container" id="progressContainer"><div class="progress-bar" id="progressBar">0%</div></div>
+      <div class="hero-bottom">
+        <span>LE POUVOIR SE QUESTIONNE</span>
+        <span class="hero-bottom-line"></span>
+        <span>LES IDÉES SE PARTAGENT</span>
+      </div>
+    </section>
 
-  <p id="info"></p>
+    <section class="intro section-wrap" id="apropos">
+      <div class="section-kicker">01 / NOTRE APPROCHE</div>
+      <div>
+        <h2>Moins de bruit.<br><span>Plus de compréhension.</span></h2>
+        <p class="intro-copy">Kratosphère est un espace de découverte consacré à la démocratie et aux questions qui façonnent notre vie collective. Ici, on explique les notions, on distingue les faits des opinions et on encourage le débat respectueux.</p>
+        <p class="independence-note"><span class="check-icon">✓</span> Kratosphère n’est affilié à aucun parti politique.</p>
+      </div>
+    </section>
 
-  <div class="legend">
-    <b>Couleur par bande :</b><br>
-    <span style="background:#800080"></span>160m
-    <span style="background:#0000CD"></span>80m
-    <span style="background:#00CED1"></span>60m
-    <span style="background:#228B22"></span>40m
-    <span style="background:#8B4513"></span>30m
-    <span style="background:#FFD700"></span>20m
-    <span style="background:#FF8C00"></span>17m
-    <span style="background:#DC143C"></span>15m
-    <span style="background:#FF1493"></span>12m
-    <span style="background:#00FF00"></span>10m
-    <span style="background:#00FA9A"></span>6m
-    <span style="background:#20B2AA"></span>4m
-    <span style="background:#1E90FF"></span>2m
-    <span style="background:#FF4500"></span>70cm
-    <span style="background:#00BFFF"></span>VHF
-    <span style="background:#A52A2A"></span>UHF
-  </div>
+    <section class="topics section-wrap" id="democratie">
+      <div class="section-heading">
+        <div>
+          <div class="section-kicker">02 / LES SUJETS</div>
+          <h2>Des questions<br>qui nous concernent.</h2>
+        </div>
+        <p>Des contenus accessibles pour se faire une idée, poser de meilleures questions et aller plus loin.</p>
+      </div>
 
-  <div id="timeline-container">
-    <label><b>Timeline:</b> <span id="timelineLabel"></span></label>
-    <input type="range" min="0" max="0" value="0" id="timelineRange" step="1" style="width: 90%">
-    <button id="playBtn">▶</button>
-    <button id="pauseBtn">⏸</button>
-  </div>
+      <div class="topic-grid">
+        <a class="topic-card democracy-card" href="#democratie-detail">
+          <div class="card-top"><span class="topic-number">01</span><span class="card-arrow">↗</span></div>
+          <div class="topic-icon">◎</div>
+          <p class="card-label">LES BASES</p>
+          <h3>La démocratie</h3>
+          <p>Ses principes, ses institutions et les différentes façons d’y participer.</p>
+          <span class="text-link">Découvrir le sujet <span>→</span></span>
+        </a>
 
-  <div id="propagationBox" style="margin-top:20px; padding:10px; background:#222; border-radius:6px;">
-    <h3>Propagation (K / Kp / A)</h3>
-    <p id="propagationStatus">En attente d’analyse…</p>
-  </div>
-</div>
+        <a class="topic-card money-card" href="#monnaie">
+          <div class="card-top"><span class="topic-number">02</span><span class="card-arrow">↗</span></div>
+          <div class="topic-icon">€</div>
+          <p class="card-label">ÉCONOMIE & SOCIÉTÉ</p>
+          <h3>Création monétaire</h3>
+          <p>Comprendre d’où vient la monnaie et comment elle circule dans l’économie.</p>
+          <span class="text-link">Découvrir le sujet <span>→</span></span>
+        </a>
 
-<div id="map" style="height:100vh;"></div>
+        <a class="topic-card tools-card" href="#outils">
+          <div class="card-top"><span class="topic-number">03</span><span class="card-arrow">↗</span></div>
+          <div class="topic-icon">✳</div>
+          <p class="card-label">PASSER À L’ACTION</p>
+          <h3>Outils citoyens</h3>
+          <p>Des ressources pour s’informer, dialoguer et participer à la vie publique.</p>
+          <span class="text-link">Découvrir les outils <span>→</span></span>
+        </a>
+      </div>
+    </section>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-const mapColor = {
-  "160M": "#800080", "80M": "#0000CD", "60M": "#00CED1", "40M": "#228B22", "30M": "#8B4513",
-  "20M": "#FFD700", "17M": "#FF8C00", "15M": "#DC143C", "12M": "#FF1493", "10M": "#00FF00",
-  "6M": "#00FA9A", "4M": "#20B2AA", "2M": "#1E90FF", "70CM": "#FF4500", "VHF": "#00BFFF", "UHF": "#A52A2A"
-};
-function getBandColor(band) {
-  return mapColor[band] || "#888888";
-}
+    <section class="feature-section" id="democratie-detail">
+      <div class="feature-inner section-wrap">
+        <div class="feature-visual" aria-hidden="true">
+          <div class="visual-circle circle-large"></div>
+          <div class="visual-circle circle-small"></div>
+          <span class="visual-mark">?</span>
+          <span class="visual-caption">GARDER L’ESPRIT OUVERT</span>
+        </div>
+        <div class="feature-copy">
+          <div class="section-kicker">UNE DÉMOCRATIE VIVANTE</div>
+          <h2>Comprendre les règles,<br>c’est déjà participer.</h2>
+          <p>Voter est important, mais la vie démocratique ne s’arrête pas aux élections. S’informer, échanger des arguments, interpeller ses représentants ou contribuer à une initiative locale : il existe plusieurs manières de prendre part aux décisions collectives.</p>
+          <a class="button button-light" href="#outils">Voir les outils citoyens <span>↗</span></a>
+        </div>
+      </div>
+    </section>
 
-const map = L.map('map').setView([50.8,4.4],4);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom: 18,
-  attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+    <section class="money-section section-wrap" id="monnaie">
+      <div class="money-copy">
+        <div class="section-kicker">03 / ÉCONOMIE & MONNAIE</div>
+        <h2>La monnaie,<br>elle est créée<br><span>comment ?</span></h2>
+        <p>La création monétaire peut sembler abstraite. Pourtant, elle touche au crédit, aux banques et à l’activité économique. Notre objectif : poser les bases clairement, sans raccourci ni jargon inutile.</p>
+        <a class="text-link" href="#contact">Proposer une question <span>→</span></a>
+      </div>
 
-const qraLocatorInput = document.getElementById('qraLocator');
-const adifFile = document.getElementById('adifFile');
-const analyzeBtn = document.getElementById('analyzeBtn');
-const bandSelect = document.getElementById('bandSelect');
-const info = document.getElementById('info');
-const progressContainer = document.getElementById('progressContainer');
-const progressBar = document.getElementById('progressBar');
-const propagationStatus = document.getElementById('propagationStatus');
-const timelineRange = document.getElementById('timelineRange');
-const timelineLabel = document.getElementById('timelineLabel');
-const playBtn = document.getElementById('playBtn');
-const pauseBtn = document.getElementById('pauseBtn');
+      <div class="money-facts">
+        <div class="fact-card"><span class="fact-number">01</span><div><h3>Les notions clés</h3><p>Monnaie, crédit, banque centrale : posons les définitions.</p></div></div>
+        <div class="fact-card"><span class="fact-number">02</span><div><h3>Les mécanismes</h3><p>Suivons les grandes étapes de la création et de la circulation monétaire.</p></div></div>
+        <div class="fact-card"><span class="fact-number">03</span><div><h3>Les débats</h3><p>Repérons les questions discutées et les points de vue différents.</p></div></div>
+        <p class="disclaimer">Contenus à visée pédagogique : ils ne constituent pas un conseil financier.</p>
+      </div>
+    </section>
 
-let allQSOs = [];
-let markersLayer = L.layerGroup().addTo(map);
-let starMarker = null;
-let timelineQSOs = [];
-let timelineInterval = null;
+    <section class="tools-section" id="outils">
+      <div class="section-wrap">
+        <div class="section-heading">
+          <div>
+            <div class="section-kicker">04 / BOÎTE À OUTILS</div>
+            <h2>Pour aller du débat<br>à la participation.</h2>
+          </div>
+          <p>Quelques pistes pour approfondir et agir à votre échelle.</p>
+        </div>
+        <div class="tools-grid">
+          <article class="tool-item"><span class="tool-icon">↗</span><h3>S’informer</h3><p>Comparer les sources, vérifier une affirmation et comprendre le contexte.</p></article>
+          <article class="tool-item"><span class="tool-icon">◎</span><h3>Débattre</h3><p>Écouter les arguments, clarifier les désaccords et dialoguer avec respect.</p></article>
+          <article class="tool-item"><span class="tool-icon">✳</span><h3>Participer</h3><p>Découvrir les formes de participation citoyenne près de chez vous.</p></article>
+        </div>
+      </div>
+    </section>
 
-qraLocatorInput.addEventListener('input', () => {
-  if(validateLocator(qraLocatorInput.value)) {
-    adifFile.disabled = false;
-    analyzeBtn.disabled = !adifFile.files.length;
-  } else {
-    adifFile.disabled = true;
-    analyzeBtn.disabled = true;
-  }
-});
-adifFile.addEventListener('change', () => {
-  analyzeBtn.disabled = !adifFile.files.length || !validateLocator(qraLocatorInput.value);
-});
+    <section class="links-section section-wrap" id="liens">
+      <div class="links-heading">
+        <div class="section-kicker">05 / POUR APPROFONDIR</div>
+        <h2>Des ressources<br><span>à explorer.</span></h2>
+        <p>Retrouvez des ressources utiles pour mieux comprendre les institutions et les enjeux collectifs.</p>
+      </div>
+      <div class="link-list">
+        <div class="link-row"><span class="link-index">01</span><div><h3>Institutions démocratiques</h3><p>Repères sur les institutions et leur fonctionnement.</p></div><span class="link-soon">À COMPLÉTER</span></div>
+        <div class="link-row"><span class="link-index">02</span><div><h3>Éducation aux médias</h3><p>Outils pour évaluer l’information et croiser les sources.</p></div><span class="link-soon">À COMPLÉTER</span></div>
+        <div class="link-row"><span class="link-index">03</span><div><h3>Économie & monnaie</h3><p>Ressources pédagogiques pour approfondir les notions économiques.</p></div><span class="link-soon">À COMPLÉTER</span></div>
+        <p class="links-note">Les liens externes seront ajoutés après vérification de leur fiabilité et de leur neutralité.</p>
+      </div>
+    </section>
 
-function validateLocator(str) {
-  return str && str.trim().length >= 4;
-}
+    <section class="contact-section" id="contact">
+      <div class="contact-inner section-wrap">
+        <div>
+          <div class="section-kicker">06 / CONTACT</div>
+          <h2>Une question,<br>une idée, un retour ?</h2>
+          <p>Kratosphère se construit aussi grâce aux échanges. Écrivez-nous pour proposer un sujet ou partager une remarque.</p>
+        </div>
+        <a class="button button-primary contact-button" href="mailto:votre-adresse@example.com">Écrire à Kratosphère <span>↗</span></a>
+      </div>
+      <p class="contact-small">Remplacez cette adresse par votre adresse e-mail avant la publication du site.</p>
+    </section>
+  </main>
 
-function locatorToLatLon(locator){
-  if(!locator || locator.length<4) return null;
-  locator=locator.toUpperCase();
-  const A='A'.charCodeAt(0);
-  const lon = (locator.charCodeAt(0)-A)*20-180 + parseInt(locator[2],10)*2 + 1;
-  const lat = (locator.charCodeAt(1)-A)*10-90 + parseInt(locator[3],10) + 0.5;
-  return {lat, lon};
-}
-function locator6ToLatLon(locator) {
-  if(!locator || locator.length<6) return null;
-  locator=locator.toUpperCase();
-  const A='A'.charCodeAt(0);
-  const lon = (locator.charCodeAt(0)-A)*20-180 + parseInt(locator[2],10)*2 + (locator.charCodeAt(4)-A)*(2/24)+(2/48);
-  const lat = (locator.charCodeAt(1)-A)*10-90 + parseInt(locator[3],10) + (locator.charCodeAt(5)-A)*(1/24)+(1/48);
-  return {lat, lon};
-}
+  <footer class="site-footer">
+    <a class="brand footer-brand" href="#accueil"><span class="brand-icon">K</span><span>Kratosphère</span></a>
+    <p>Comprendre · Débattre · Participer</p>
+    <span class="footer-note">Un espace indépendant, sans affiliation politique.</span>
+    <span class="copyright">© 2026 Kratosphère</span>
+  </footer>
 
-function parseADIF(text) {
-  const qsos = [];
-  const records = text.split(/<EOR>/i);
-  for(const rec of records) {
-    const callMatch = rec.match(/<CALL:\s*\d+>\s*([^<\s]+)/i);
-    if(!callMatch) continue;
-    const bandMatch = rec.match(/<BAND:\s*\d+>\s*([^<\s]+)/i);
-    const dateMatch = rec.match(/<QSO_DATE:\s*\d+>\s*(\d{8})/i);
-    const timeMatch = rec.match(/<TIME_ON:\s*\d+>\s*(\d{4})/i);
-    qsos.push({
-      call: callMatch[1].toUpperCase().trim(),
-      band: bandMatch ? bandMatch[1].toUpperCase().trim() : 'N/A',
-      date: dateMatch ? dateMatch[1] : 'N/A',
-      time: timeMatch ? timeMatch[1] : '0000'
+  <script>
+    const toggle = document.querySelector(".menu-toggle");
+    const nav = document.querySelector(".main-nav");
+
+    toggle.addEventListener("click", () => {
+      const isOpen = nav.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", isOpen);
     });
-  }
-  return qsos;
-}
 
-async function getSpotHoleData(callsign){
-  try {
-    const url = `https://spothole.app/api/v1/lookup/call?call=${encodeURIComponent(callsign)}`;
-    const response = await fetch(url);
-    if(!response.ok) throw new Error(`HTTP ${response.status}`);
-    const json=await response.json();
-    return Array.isArray(json) ? json[0]||null : json;
-  } catch(e) {
-    console.error("Erreur API spothole.app:", e);
-    return null;
-  }
-}
-
-async function getGridCenter(gridLocator){
-  if(!gridLocator) return null;
-  try {
-    const response = await fetch(`https://spothole.app/api/v1/recherche/grille?grille=${encodeURIComponent(gridLocator)}`);
-    if(!response.ok) return null;
-    const json=await response.json();
-    if(json?.center?.latitude != null && json?.center?.longitude!=null)
-      return {lat: json.center.latitude, lon: json.center.longitude};
-    return null;
-  } catch(e){ console.error("Erreur récupération coordonnées grid:", e); return null;}
-}
-
-async function showStarForLocator(locator) {
-  if(starMarker) map.removeLayer(starMarker);
-  let pos = null;
-  if(locator && locator.length>=4){
-    pos = await getGridCenter(locator);
-  }
-  if(!pos){
-    if(locator.length>=6) pos = locator6ToLatLon(locator);
-    else pos = locatorToLatLon(locator);
-  }
-  if(!pos) return;
-  const starIcon = L.divIcon({
-    html: `<svg width="28" height="28" viewBox="0 0 28 28"><polygon points="14,2 17,11 27,11 19,17 22,27 14,21 6,27 9,17 1,11 11,11" fill="#FFD700" stroke="#C0B000" stroke-width="2"/></svg>`,
-    className:'',
-    iconSize:[28,28],
-    iconAnchor:[14,14]
-  });
-  starMarker = L.marker([pos.lat,pos.lon], {icon: starIcon, zIndexOffset: 999}).addTo(map);
-  map.setView([pos.lat,pos.lon],7);
-}
-
-function displayMarkers(filteredQSOs){
-  markersLayer.clearLayers();
-  let localizedCount=0;
-  for(const qso of filteredQSOs){
-    if(qso.pos){
-      localizedCount++;
-      L.circleMarker([qso.pos.lat,qso.pos.lon],{
-        radius:6,
-        color: getBandColor(qso.band),
-        fillColor: getBandColor(qso.band),
-        fillOpacity:0.8
-      }).addTo(markersLayer).bindPopup(
-        `<b>Call:</b> ${qso.call}<br/><b>Bande:</b> ${qso.band}<br/><b>Date:</b> ${qso.date}<br/><b>Locator:</b> ${qso.locator}`
-      );
-    }
-  }
-  info.textContent = `QSO affichés : ${filteredQSOs.length} — QSO géolocalisés : ${localizedCount}`;
-  if(starMarker && starMarker._icon) starMarker._icon.style.zIndex=9999;
-  const first = filteredQSOs.find(q=>q.pos);
-  if(first && first.pos) map.setView([first.pos.lat,first.pos.lon],6);
-}
-
-function formatQSODateTime(qso){
-  const time = qso.time || '0000';
-  const hours = parseInt(time.substring(0,2));
-  const mins = parseInt(time.substring(2,4));
-  return new Date(`${qso.date.substring(0,4)}-${qso.date.substring(4,6)}-${qso.date.substring(6,8)}T${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:00Z`);
-}
-
-function buildTimelineQSOs(qsos){
-  for(const qso of qsos){
-    qso.datetime = formatQSODateTime(qso);
-  }
-  timelineQSOs = qsos.slice().sort((a,b)=>a.datetime-b.datetime);
-  timelineRange.min = 0;
-  timelineRange.max = timelineQSOs.length - 1;
-}
-
-async function updateTimelineMap(){
-  const idx = Number(timelineRange.value) || 0;
-  const curQSO = timelineQSOs[idx];
-  if(!curQSO) return;
-  timelineLabel.textContent = curQSO.datetime.toISOString().replace('T',' ').slice(0,16);
-
-  const visible = timelineQSOs.slice(0, idx+1);
-  const band = bandSelect.value;
-  let filteredVisible;
-  if(!band) filteredVisible = visible;
-  else if(band === 'VHF') filteredVisible = visible.filter(q => ['2M','4M','6M'].includes(q.band));
-  else if(band === 'UHF') filteredVisible = visible.filter(q => ['70CM'].includes(q.band));
-  else filteredVisible = visible.filter(q => q.band === band);
-
-  displayMarkers(filteredVisible);
-}
-
-playBtn.addEventListener('click', () => {
-  if(timelineInterval) clearInterval(timelineInterval);
-  timelineInterval = setInterval(()=>{
-    let currentVal = Number(timelineRange.value);
-    if(currentVal < timelineQSOs.length-1) {
-      timelineRange.value = currentVal + 1;
-      updateTimelineMap();
-    } else {
-      clearInterval(timelineInterval);
-    }
-  },900);
-});
-
-pauseBtn.addEventListener('click', () => {
-  if(timelineInterval) clearInterval(timelineInterval);
-});
-
-timelineRange.addEventListener('input', updateTimelineMap);
-bandSelect.addEventListener('change', updateTimelineMap);
-
-async function fetchPropagationIndices(minDate, maxDate){
-  const url = `https://kp.gfz.de/app/json/?start=${minDate}T00:00:00Z&end=${maxDate}T23:59:59Z&index=Kp,C9,Ap&status=def`;
-  try {
-    const response = await fetch(url);
-    if(!response.ok) throw new Error(`API propagation error: ${response.status}`);
-    const data = await response.json();
-    const len = data.Kp?.length || 0;
-    if(len === 0) return null;
-    return {
-      K: data.C9?.[len-1] ?? '?',
-      Kp: data.Kp?.[len-1] ?? '?',
-      A: data.Ap?.[len-1] ?? '?'
-    };
-  } catch(e){
-    console.error('Erreur fetch propagation:', e);
-    return null;
-  }
-}
-
-function evaluatePropagation(kp){
-  if(isNaN(kp)) return {text:'Propagation inconnue', color:'gray'};
-  if(kp <= 2) return {text:'Bonne propagation', color:'lime'};
-  if(kp <= 4) return {text:'Propagation moyenne', color:'orange'};
-  return {text:'Mauvaise propagation', color:'red'};
-}
-
-function displayPropagationData(data){
-  if(!data){
-    propagationStatus.innerHTML = "Impossible de récupérer la propagation.";
-    propagationStatus.style.color = "red";
-    return;
-  }
-  const K = data.K ?? '?';
-  const Kp = data.Kp ?? '?';
-  const A = data.A ?? '?';
-  const evalP = evaluatePropagation(parseFloat(Kp));
-  propagationStatus.innerHTML = `
-    <b>K :</b> ${K}<br/>
-    <b>Kp :</b> ${Kp}<br/>
-    <b>A :</b> ${A}<br/>
-    <span style="color:${evalP.color}; font-weight:bold;">${evalP.text}</span>
-  `;
-  propagationStatus.style.color = evalP.color;
-}
-
-async function showStarForLocator(locator){
-  if(starMarker) map.removeLayer(starMarker);
-  let pos = null;
-  if(locator && locator.length >= 4){
-    pos = await getGridCenter(locator);
-  }
-  if(!pos){
-    if(locator.length >= 6) pos = locator6ToLatLon(locator);
-    else pos = locatorToLatLon(locator);
-  }
-  if(!pos) return;
-  const starIcon = L.divIcon({
-    html:`<svg width="28" height="28" viewBox="0 0 28 28">
-      <polygon points="14,2 17,11 27,11 19,17 22,27 14,21 6,27 9,17 1,11 11,11" fill="#FFD700" stroke="#C0B000" stroke-width="2"/>
-    </svg>`,
-    className:'',
-    iconSize:[28,28],
-    iconAnchor:[14,14]
-  });
-  starMarker = L.marker([pos.lat,pos.lon],{icon:starIcon,zIndexOffset:999}).addTo(map);
-  map.setView([pos.lat,pos.lon],7);
-}
-
-analyzeBtn.addEventListener('click', async ()=>{
-  const qraLocator = qraLocatorInput.value.trim().toUpperCase();
-  if(!validateLocator(qraLocator)){
-    alert('Merci d’entrer un QRA-locator valide.');
-    return;
-  }
-  await showStarForLocator(qraLocator);
-
-  info.textContent = '';
-  progressContainer.style.display = 'block';
-  progressBar.style.width = '0%';
-  progressBar.textContent = '0%';
-
-  markersLayer.clearLayers();
-
-  const text = await adifFile.files[0].text();
-  const qsos = parseADIF(text);
-  allQSOs = [];
-
-  for(let i=0; i<qsos.length; i++){
-    const qso = qsos[i];
-    const spotData = await getSpotHoleData(qso.call);
-    let lat=null, lon=null, locator=null;
-    if(spotData){
-      locator = spotData.dx_grid || spotData.grid || null;
-      lat = spotData.dx_latitude !== undefined ? spotData.dx_latitude : spotData.latitude;
-      lon = spotData.dx_longitude !== undefined ? spotData.dx_longitude : spotData.longitude;
-    }
-    qso.locator = locator ? locator.toUpperCase() : 'Inconnu';
-    let pos = null;
-    if(lat !== null && lon !== null) pos = {lat, lon};
-    else if(locator) {
-      pos = await getGridCenter(locator);
-      if(!pos) pos = locator6ToLatLon(locator) || locatorToLatLon(locator);
-    }
-    qso.pos = pos || null;
-
-    allQSOs.push(qso);
-
-    const percent = Math.round((i+1)*100/qsos.length);
-    progressBar.style.width = percent + '%';
-    progressBar.textContent = percent + '%';
-    await new Promise(r => setTimeout(r, 30));
-  }
-  progressContainer.style.display = 'none';
-
-  buildTimelineQSOs(allQSOs);
-  timelineRange.value = 0;
-  updateTimelineMap();
-
-  const dateRange = extractDatesFromQSOs(allQSOs);
-  if(dateRange){
-    const indices = await fetchPropagationIndices(dateRange.min, dateRange.max);
-    displayPropagationData(indices);
-  }else{
-    propagationStatus.innerHTML = "Pas de dates valides pour la propagation.";
-    propagationStatus.style.color = "gray";
-  }
-});
-</script>
+    nav.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        nav.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+  </script>
 </body>
 </html>
